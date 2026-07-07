@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Το Πρώτο μου Ηλεκτρικό Κύκλωμα με AI</title>
+    <!-- Tailwind CSS για γρήγορο, καθαρό και responsive σχεδιασμό -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons για απλά και ευδιάκριτα εικονίδια -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Comfortaa', cursive, sans-serif;
+            background-color: #f0f7ff;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        /* Ήπιο animation για τη λάμψη της λάμπας */
+        @keyframes pulse-glow {
+            0%, 100% { filter: drop-shadow(0 0 15px rgba(253, 224, 71, 0.6)); }
+            50% { filter: drop-shadow(0 0 35px rgba(253, 224, 71, 0.9)); }
+        }
+        @keyframes pulse-glow-weak {
+            0%, 100% { filter: drop-shadow(0 0 5px rgba(253, 224, 71, 0.3)); }
+            50% { filter: drop-shadow(0 0 15px rgba(253, 224, 71, 0.5)); }
+        }
+        .glow-active {
+            animation: pulse-glow 2s infinite ease-in-out;
+        }
+        .glow-active-weak {
+            animation: pulse-glow-weak 2s infinite ease-in-out;
+        }
+
+        /* Animation για τη ροή του ρεύματος (κίτρινες κουκκίδες στα καλώδια) */
+        @keyframes flow {
+            to { stroke-dashoffset: -20; }
+        }
+        .wire-flow {
+            stroke-dasharray: 6, 6;
+            animation: flow 1s linear infinite;
+        }
+
+        /* Ομαλή μετάβαση για τον διακόπτη */
+        .switch-transition {
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Προσαρμογή scrollbar για την αριστερή στήλη */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center p-4 overflow-x-hidden">
+
+    <!-- Πάνω Μπάρα: Τίτλος & Ρυθμίσεις Ήχου/Βοήθειας -->
+    <header class="w-full max-w-6xl flex items-center justify-between bg-white rounded-2xl p-4 shadow-md border-2 border-blue-100 mb-6">
+        <div class="flex items-center gap-3">
+            <span class="text-3xl">💡</span>
+            <h1 class="text-xl md:text-2xl font-bold text-blue-800">Παίζω με το Ρεύμα!</h1>
+        </div>
+        <div class="flex items-center gap-2">
+            <!-- Κουμπί Ήχου -->
+            <button id="soundToggle" onclick="toggleSound()" class="p-3 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-full border-2 border-blue-200 transition-colors focus:outline-none min-w-[48px] min-h-[48px] flex items-center justify-center" aria-label="Ενεργοποίηση/Απενεργοποίηση ήχου">
+                <i data-lucide="volume-2" id="soundIcon" class="w-6 h-6"></i>
+            </button>
+            <!-- Κουμπί Οδηγού -->
+            <button onclick="showHelpModal()" class="p-3 bg-amber-50 hover:bg-amber-100 text-amber-700 rounded-full border-2 border-amber-200 transition-colors focus:outline-none min-w-[48px] min-h-[48px] flex items-center justify-center" aria-label="Βοήθεια">
+                <i data-lucide="help-circle" class="w-6 h-6"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Κύριος Χώρος Εργασίας (Workspace) - Διάταξη Πλάι-Πλάι -->
+    <main class="w-full max-w-6xl flex flex-col lg:flex-row gap-6 items-start relative">
+        
+        <!-- ΑΡΙΣΤΕΡΗ ΣΤΗΛΗ: Εργαλεία και AI Βοηθός -->
+        <div class="w-full lg:w-5/12 flex flex-col gap-6">
+            
+            <!-- Πάνελ Εργαλείων -->
+            <section class="bg-white rounded-2xl p-5 shadow-md border-2 border-blue-100">
+                <h2 class="text-lg font-bold text-gray-700 mb-4 flex items-center gap-2">
+                    <span>🎒</span> Διάλεξε Υλικά:
+                </h2>
+                
+                <div class="space-y-5">
+                    <!-- 1. Μπαταρίες -->
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 mb-2">1. Δύναμη (Μπαταρίες):</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setBatteries(1)" id="btn-bat-1" class="py-3 px-2 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-800 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-xl">🔋</span>
+                                <span class="text-xs">1 Μπαταρία</span>
+                            </button>
+                            <button onclick="setBatteries(2)" id="btn-bat-2" class="py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-xl">🔋+🔋</span>
+                                <span class="text-xs">2 Μπαταρίες</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 2. Λάμπες -->
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 mb-2">2. Λαμπτήρες:</p>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button onclick="setBulb('normal')" id="btn-bulb-normal" class="py-3 px-2 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-800 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-xl">💡</span>
+                                <span class="text-xs">Απλή Λάμπα</span>
+                            </button>
+                            <button onclick="setBulb('weak')" id="btn-bulb-weak" class="py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-xl">🕯️</span>
+                                <span class="text-xs">Αδύναμη Λάμπα</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 3. Διακόπτης -->
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 mb-2">3. Διακόπτης (Κουμπί):</p>
+                        <div class="flex gap-2">
+                            <button onclick="toggleSwitch()" id="switchBtn" class="w-full py-3 px-4 rounded-xl border-2 border-red-500 bg-red-50 text-red-700 font-bold flex items-center justify-center gap-2 transition-all min-h-[48px] shadow-sm hover:shadow-md">
+                                <i data-lucide="toggle-left" class="w-7 h-7"></i>
+                                <span id="switchText" class="text-lg">OFF (Σβηστό)</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- 4. Υλικά Γέφυρας -->
+                    <div>
+                        <p class="text-sm font-semibold text-gray-500 mb-2">4. Γέφυρα (Δοκίμασε υλικά!):</p>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button onclick="setMaterial('wire')" id="btn-mat-wire" class="py-2 px-1 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-800 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-lg">🔌</span>
+                                <span class="text-[10px]">Καλώδιο</span>
+                            </button>
+                            <button onclick="setMaterial('clip')" id="btn-mat-clip" class="py-2 px-1 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-lg">📎</span>
+                                <span class="text-[10px]">Συνδετήρας</span>
+                            </button>
+                            <button onclick="setMaterial('ring')" id="btn-mat-ring" class="py-2 px-1 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-lg">💍</span>
+                                <span class="text-[10px]">Δαχτυλίδι</span>
+                            </button>
+                            <button onclick="setMaterial('pencil')" id="btn-mat-pencil" class="py-2 px-1 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-lg">✏️</span>
+                                <span class="text-[10px]">Μολύβι</span>
+                            </button>
+                            <button onclick="setMaterial('eraser')" id="btn-mat-eraser" class="py-2 px-1 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]">
+                                <span class="text-lg">🧼</span>
+                                <span class="text-[10px]">Γόμα</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Κουμπί Καθαρισμού -->
+                <button onclick="resetCircuit()" class="mt-6 w-full py-3 px-4 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold flex items-center justify-center gap-2 border-2 border-gray-300 transition-colors focus:outline-none min-h-[48px]">
+                    <i data-lucide="rotate-ccw" class="w-5 h-5"></i>
+                    Καθαρισμός
+                </button>
+            </section>
+
+            <!-- ✨ AI Βοηθός / Έξυπνος AI Φίλος -->
+            <section class="bg-gradient-to-br from-indigo-50 to-purple-50 rounded-2xl p-5 shadow-md border-2 border-indigo-200 mb-4 lg:mb-10">
+                <div class="flex items-center justify-between border-b-2 border-indigo-100 pb-2 mb-3">
+                    <h3 class="text-lg font-bold text-indigo-900 flex items-center gap-2">
+                        <span>🤖</span> AI Φίλος
+                    </h3>
+                    <span class="text-[10px] font-bold bg-indigo-200 text-indigo-800 px-2 py-1 rounded-full">Gemini</span>
+                </div>
+
+                <div class="space-y-4">
+                    <!-- Κουμπί Ανάλυσης -->
+                    <button onclick="aiAnalyzeCurrentCircuit()" id="aiAnalyzeBtn" class="w-full py-2.5 px-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold flex items-center justify-center gap-2 shadow-sm transition-all min-h-[44px] text-sm">
+                        <span>🔍</span> Τι συμβαίνει στο κύκλωμα;
+                    </button>
+
+                    <!-- Δοκιμή Φανταστικού Υλικού -->
+                    <div class="bg-white p-2.5 rounded-xl border border-indigo-200 space-y-2">
+                        <label for="customMaterialInput" class="text-[11px] font-bold text-gray-600 block">Δοκίμασε ένα δικό σου υλικό:</label>
+                        <div class="flex gap-2">
+                            <input type="text" id="customMaterialInput" placeholder="π.χ. νερό, κέρμα..." class="flex-1 p-2 border-2 border-gray-200 rounded-lg text-sm focus:border-indigo-500 focus:outline-none min-h-[40px]">
+                            <button onclick="aiTestCustomMaterial()" id="aiTestBtn" class="px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold text-sm shadow-sm transition-colors min-h-[40px]">
+                                Ρώτα
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Έτοιμες Ερωτήσεις -->
+                    <div class="flex flex-wrap gap-1.5">
+                        <button onclick="aiAskQuestion('Τι είναι το ηλεκτρικό ρεύμα με απλά λόγια;')" class="text-[11px] bg-white hover:bg-indigo-100 text-indigo-800 px-2.5 py-1.5 rounded-full border border-indigo-200 font-semibold transition-colors">
+                            ✨ Τι είναι το ρεύμα;
+                        </button>
+                        <button onclick="aiAskQuestion('Τι σημαίνει ότι ένα υλικό είναι αγωγός ή μονωτής;')" class="text-[11px] bg-white hover:bg-indigo-100 text-indigo-800 px-2.5 py-1.5 rounded-full border border-indigo-200 font-semibold transition-colors">
+                            ✨ Τι είναι ο αγωγός;
+                        </button>
+                    </div>
+
+                    <!-- Απάντηση AI -->
+                    <div class="bg-white p-3 rounded-xl border border-indigo-200 min-h-[120px]">
+                        <span class="text-[10px] font-bold text-gray-400 block mb-1">Απάντηση:</span>
+                        <div id="aiResponseBox" class="text-sm text-gray-700 leading-relaxed space-y-2">
+                            Γεια σου! 🌟 Φτιάξε ένα κύκλωμα και πάτα το κουμπί για να σου εξηγήσω τι συμβαίνει, ή ρώτησέ με ό,τι θέλεις!
+                        </div>
+                        <!-- Δείκτης Φόρτωσης -->
+                        <div id="aiLoading" class="hidden flex items-center justify-center gap-2 mt-3">
+                            <div class="w-2.5 h-2.5 bg-indigo-600 rounded-full animate-bounce"></div>
+                            <div class="w-2.5 h-2.5 bg-purple-600 rounded-full animate-bounce [animation-delay:0.2s]"></div>
+                            <div class="w-2.5 h-2.5 bg-pink-500 rounded-full animate-bounce [animation-delay:0.4s]"></div>
+                            <span class="text-[11px] text-indigo-800 font-bold">Σκέφτομαι...</span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- ΔΕΞΙΑ ΣΤΗΛΗ: Οπτική Προσομοίωση (Sticky - Καρφιτσωμένη) -->
+        <div class="w-full lg:w-7/12 sticky top-4 flex flex-col gap-4">
+            
+            <section class="bg-white rounded-2xl p-4 shadow-md border-2 border-blue-100 flex flex-col justify-between relative min-h-[400px]">
+                
+                <!-- Πάνω Ένδειξη Ροής Ρεύματος -->
+                <div class="absolute top-4 left-4 right-4 flex items-center justify-between pointer-events-none z-10">
+                    <div id="statusIndicator" class="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-full border-2 border-red-200 font-bold text-sm transition-all duration-300 shadow-sm mx-auto">
+                        <span id="statusIcon">❌</span>
+                        <span id="statusLabel">Το ρεύμα δεν κυλάει</span>
+                    </div>
+                </div>
+
+                <!-- Το Κύκλωμα σε SVG -->
+                <div class="w-full flex-1 flex items-center justify-center mt-14 mb-4">
+                    <svg id="circuitSVG" viewBox="0 0 500 350" class="w-full max-h-[350px] select-none">
+                        
+                        <defs>
+                            <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                                <feGaussianBlur stdDeviation="12" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                            <filter id="glowWeak" x="-30%" y="-30%" width="160%" height="160%">
+                                <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+                                <feMerge>
+                                    <feMergeNode in="coloredBlur"/>
+                                    <feMergeNode in="SourceGraphic"/>
+                                </feMerge>
+                            </filter>
+                        </defs>
+
+                        <!-- ΚΑΛΩΔΙΑ (Βασική διαδρομή) -->
+                        <path d="M 120 280 L 380 280" stroke="#4b5563" stroke-width="8" fill="none" stroke-linecap="round" />
+                        <path id="flow-bottom" d="M 120 280 L 380 280" stroke="#fde047" stroke-width="4" fill="none" stroke-linecap="round" class="hidden" />
+
+                        <path d="M 420 280 L 420 180" stroke="#4b5563" stroke-width="8" fill="none" stroke-linecap="round" />
+                        <path id="flow-right-1" d="M 420 280 L 420 180" stroke="#fde047" stroke-width="4" fill="none" stroke-linecap="round" class="hidden" />
+                        
+                        <path d="M 420 120 L 420 60" stroke="#4b5563" stroke-width="8" fill="none" stroke-linecap="round" />
+                        <path id="flow-right-2" d="M 420 120 L 420 60" stroke="#fde047" stroke-width="4" fill="none" stroke-linecap="round" class="hidden" />
+
+                        <path d="M 420 60 L 280 60" stroke="#4b5563" stroke-width="8" fill="none" stroke-linecap="round" />
+                        <path id="flow-top" d="M 420 60 L 280 60" stroke="#fde047" stroke-width="4" fill="none" stroke-linecap="round" class="hidden" />
+
+                        <path d="M 220 60 L 80 60 L 80 280 L 120 280" stroke="#4b5563" stroke-width="8" fill="none" stroke-linecap="round" />
+                        <path id="flow-left" d="M 220 60 L 80 60 L 80 280 L 120 280" stroke="#fde047" stroke-width="4" fill="none" stroke-linecap="round" class="hidden" />
+
+
+                        <!-- ΜΠΑΤΑΡΙΑ -->
+                        <g id="batteryGroup" transform="translate(100, 250)">
+                            <rect x="0" y="10" width="80" height="40" rx="8" fill="#1e3a8a" stroke="#1d4ed8" stroke-width="2"/>
+                            <rect x="0" y="10" width="25" height="40" rx="4" fill="#ef4444" />
+                            <rect x="-6" y="20" width="6" height="20" rx="2" fill="#9ca3af" />
+                            <text x="35" y="35" fill="white" font-weight="bold" font-size="16">+</text>
+                            
+                            <g id="battery2" class="hidden" transform="translate(60, 0)">
+                                <rect x="0" y="10" width="80" height="40" rx="8" fill="#1e3a8a" stroke="#1d4ed8" stroke-width="2"/>
+                                <rect x="0" y="10" width="25" height="40" rx="4" fill="#ef4444" />
+                                <rect x="-6" y="20" width="6" height="20" rx="2" fill="#9ca3af" />
+                                <text x="35" y="35" fill="white" font-weight="bold" font-size="16">+</text>
+                            </g>
+                        </g>
+
+                        <!-- ΔΙΑΚΟΠΤΗΣ ΠΑΝΩ ΣΤΟ ΚΥΚΛΩΜΑ -->
+                        <g transform="translate(360, 250)" class="cursor-pointer group" onclick="toggleSwitch()">
+                            <circle cx="20" cy="30" r="12" fill="#374151" class="group-hover:fill-gray-500 transition-colors" />
+                            <circle cx="60" cy="30" r="12" fill="#374151" class="group-hover:fill-gray-500 transition-colors" />
+                            <!-- Το κινητό έλασμα -->
+                            <line id="switchArm" x1="20" y1="30" x2="60" y2="0" stroke="#ef4444" stroke-width="10" stroke-linecap="round" class="switch-transition" />
+                        </g>
+
+                        <!-- ΓΕΦΥΡΑ (ΥΛΙΚΟ) -->
+                        <g transform="translate(380, 110)">
+                            <circle cx="40" cy="10" r="12" fill="#4b5563" />
+                            <circle cx="40" cy="70" r="12" fill="#4b5563" />
+                            
+                            <!-- 1. Καλώδιο -->
+                            <path id="mat-wire-svg" d="M 40 10 L 40 70" stroke="#10b981" stroke-width="10" stroke-linecap="round" class="" />
+                            
+                            <!-- 2. Συνδετήρας -->
+                            <g id="mat-clip-svg" class="hidden">
+                                <rect x="34" y="15" width="12" height="50" rx="6" fill="none" stroke="#9ca3af" stroke-width="6" stroke-linecap="round" />
+                                <rect x="38" y="22" width="4" height="35" rx="2" fill="none" stroke="#d1d5db" stroke-width="2" stroke-linecap="round" />
+                            </g>
+
+                            <!-- 3. Δαχτυλίδι -->
+                            <g id="mat-ring-svg" class="hidden" transform="translate(32, 25)">
+                                <circle cx="8" cy="8" r="15" fill="none" stroke="#facc15" stroke-width="5" />
+                                <rect x="0" y="-10" width="16" height="10" rx="2" fill="#60a5fa" />
+                            </g>
+
+                            <!-- 4. Μολύβι -->
+                            <g id="mat-pencil-svg" class="hidden" transform="translate(32, 10)">
+                                <rect x="3" y="5" width="10" height="45" rx="2" fill="#f59e0b" />
+                                <polygon points="3,5 13,5 8,-2" fill="#fbcfe8" />
+                                <polygon points="6,1 10,1 8,-2" fill="#374151" />
+                                <rect x="3" y="47" width="10" height="5" fill="#f43f5e" />
+                            </g>
+
+                            <!-- 5. Γόμα -->
+                            <g id="mat-eraser-svg" class="hidden" transform="translate(30, 20)">
+                                <rect x="0" y="0" width="20" height="40" rx="4" fill="#f87171" stroke="#dc2626" stroke-width="2" />
+                                <path d="M 0 10 L 20 10 M 0 20 L 20 20 M 0 30 L 20 30" stroke="#dc2626" stroke-width="1" />
+                            </g>
+                        </g>
+
+                        <!-- ΛΑΜΠΑ -->
+                        <g transform="translate(210, 20)">
+                            <path d="M 20 40 L 60 40 L 50 60 L 30 60 Z" fill="#9ca3af" stroke="#4b5563" stroke-width="2" />
+                            <rect x="35" y="60" width="10" height="5" fill="#374151" />
+                            
+                            <!-- Κανονική Λάμπα -->
+                            <circle cx="40" cy="20" r="22" fill="#e5e7eb" stroke="#9ca3af" stroke-width="2" id="bulbGlassNormal" class="transition-all duration-300" />
+                            
+                            <!-- Αδύναμη Λάμπα -->
+                            <g id="bulbGlassWeakGroup" class="hidden">
+                                <circle cx="40" cy="20" r="22" fill="#d1d5db" stroke="#9ca3af" stroke-width="2" opacity="0.7" />
+                                <path d="M 30 10 Q 40 0, 50 10 M 30 20 Q 40 10, 50 20" stroke="#9ca3af" stroke-width="1" fill="none" opacity="0.5" />
+                            </g>
+                            
+                            <!-- Σύρμα -->
+                            <path id="filament" d="M 30 40 L 35 25 L 45 25 L 50 40" stroke="#4b5563" stroke-width="2" fill="none" />
+                            
+                            <!-- Ακτίνες Φωτός -->
+                            <g id="lightRays" class="hidden opacity-0 transition-opacity duration-300">
+                                <line x1="40" y1="-10" x2="40" y2="-2" stroke="#fde047" stroke-width="3" stroke-linecap="round" />
+                                <line x1="10" y1="20" x2="2" y2="20" stroke="#fde047" stroke-width="3" stroke-linecap="round" />
+                                <line x1="70" y1="20" x2="78" y2="20" stroke="#fde047" stroke-width="3" stroke-linecap="round" />
+                                <line x1="18" y1="-2" x2="24" y2="4" stroke="#fde047" stroke-width="3" stroke-linecap="round" />
+                                <line x1="62" y1="-2" x2="56" y2="4" stroke="#fde047" stroke-width="3" stroke-linecap="round" />
+                            </g>
+                        </g>
+
+                    </svg>
+                </div>
+
+                <!-- Κείμενο Ανατροφοδότησης -->
+                <footer class="w-full bg-blue-50 border-2 border-blue-200 rounded-xl p-4 min-h-[72px] flex items-center justify-center text-center">
+                    <p id="feedbackText" class="text-base md:text-lg font-bold text-blue-900 transition-all duration-300">
+                        💡 Σύνδεσε τα καλώδια και βάλε τον διακόπτη στο ON για να ανάψεις τη λάμπα!
+                    </p>
+                </footer>
+            </section>
+        </div>
+    </main>
+
+    <!-- Μικρός, διακριτικός οδηγός έναρξης (Modal) -->
+    <div id="helpModal" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border-4 border-blue-400 relative">
+            <button onclick="closeHelpModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 focus:outline-none min-w-[44px] min-h-[44px] flex items-center justify-center">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+            
+            <div class="text-center">
+                <span class="text-5xl">🎉</span>
+                <h3 class="text-2xl font-bold text-blue-800 mt-2">Καλώς ήρθες!</h3>
+                <p class="text-gray-600 mt-4 text-sm md:text-base">
+                    Εδώ μπορείς να φτιάξεις το δικό σου ηλεκτρικό κύκλωμα πολύ εύκολα!
+                </p>
+            </div>
+
+            <div class="mt-6 space-y-4 overflow-y-auto max-h-[50vh]">
+                <div class="flex items-start gap-3">
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">1</span>
+                    <p class="text-sm text-gray-700 font-medium">Επίλεξε 1 ή 2 μπαταρίες για να δεις πόσο δυνατά θα ανάψει η λάμπα.</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">2</span>
+                    <p class="text-sm text-gray-700 font-medium">Πάτα το κουμπί του διακόπτη να γίνει πράσινο (ON).</p>
+                </div>
+                <div class="flex items-start gap-3">
+                    <span class="bg-blue-100 text-blue-800 rounded-full w-8 h-8 flex items-center justify-center font-bold shrink-0">3</span>
+                    <p class="text-sm text-gray-700 font-medium">Δοκίμασε διάφορα υλικά στη γέφυρα για να δεις ποια αφήνουν το ρεύμα να περάσει!</p>
+                </div>
+            </div>
+
+            <button onclick="closeHelpModal()" class="mt-6 w-full py-3 bg-green-500 hover:bg-green-600 text-white rounded-2xl font-bold shadow-md transition-colors min-h-[48px]">
+                Ξεκινάμε! 🚀
+            </button>
+        </div>
+    </div>
+
+    <!-- Ηχητικά Εφέ -->
+    <script>
+        let isSoundEnabled = true;
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playClickSound() {
+            if (!isSoundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.1);
+            } catch (e) {}
+        }
+
+        function playSuccessSound() {
+            if (!isSoundEnabled) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.setValueAtTime(554.37, audioCtx.currentTime + 0.1);
+                osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.3);
+            } catch (e) {}
+        }
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            const soundIcon = document.getElementById('soundIcon');
+            if (isSoundEnabled) {
+                soundIcon.setAttribute('data-lucide', 'volume-2');
+                playClickSound();
+            } else {
+                soundIcon.setAttribute('data-lucide', 'volume-x');
+            }
+            lucide.createIcons();
+        }
+    </script>
+
+    <!-- GEMINI API -->
+    <script>
+        const apiKey = ""; // API Key provided by runtime environment
+
+        async function callGemini(userPrompt, systemPrompt = "") {
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            const payload = {
+                contents: [{ parts: [{ text: userPrompt }] }]
+            };
+            if (systemPrompt) {
+                payload.systemInstruction = { parts: [{ text: systemPrompt }] };
+            }
+
+            let delay = 1000;
+            for (let i = 0; i < 5; i++) {
+                try {
+                    const response = await fetch(url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    if (response.ok) {
+                        const data = await response.json();
+                        return data.candidates?.[0]?.content?.parts?.[0]?.text;
+                    }
+                } catch (e) {}
+                await new Promise(resolve => setTimeout(resolve, delay));
+                delay *= 2;
+            }
+            throw new Error("Δεν μπόρεσα να επικοινωνήσω με τον AI Φίλο. Δοκίμασε πάλι σε λίγο!");
+        }
+
+        const systemInstruction = 
+            "Είσαι ένας εξαιρετικά φιλικός, υποστηρικτικός και γλυκός δάσκαλος φυσικής για παιδιά δημοτικού " +
+            "με μαθησιακές δυσκολίες (δυσλεξία, ΔΕΠΥ). Απαντάς πάντα στα Ελληνικά, χρησιμοποιώντας πολύ απλή γλώσσα, " +
+            "πολύ μικρές προτάσεις, καθόλου τεχνικούς όρους ή τύπους. Χρησιμοποίησε πολλά ενθαρρυντικά emojis και " +
+            "κάνε το παιδί να νιώσει έξυπνο και δημιουργικό! Κράτα την απάντηση σύντομη (το πολύ 2-3 παραγράφους με 1-2 προτάσεις η καθεμία) " +
+            "για να μην κουράζεται το παιδί στο διάβασμα.";
+
+        async function aiAnalyzeCurrentCircuit() {
+            playClickSound();
+            const responseBox = document.getElementById('aiResponseBox');
+            const loader = document.getElementById('aiLoading');
+            
+            const batCount = circuitState.batteries;
+            const bulbTypeStr = (circuitState.bulbType === 'normal') ? 'κανονική' : 'αδύναμη / αχνή';
+            const switchStr = (circuitState.isSwitchOn) ? 'ενεργοποιημένος (ON - περνάει ρεύμα)' : 'απενεργοποιημένος (OFF - κομμένο ρεύμα)';
+            
+            let matGreek = '';
+            switch(circuitState.material) {
+                case 'wire': matGreek = 'καλώδιο (χαλκός)'; break;
+                case 'clip': matGreek = 'μεταλλικός συνδετήρας'; break;
+                case 'ring': matGreek = 'χρυσό δαχτυλίδι'; break;
+                case 'pencil': matGreek = 'ξύλινο μολύβι'; break;
+                case 'eraser': matGreek = 'γόμα'; break;
+            }
+
+            const prompt = `Αυτή τη στιγμή το παιδί έχει φτιάξει ένα κύκλωμα με: 
+            - Μπαταρίες: ${batCount}
+            - Τύπος λάμπας: ${bulbTypeStr}
+            - Διακόπτης: ${switchStr}
+            - Υλικό στη γέφυρα: ${matGreek}
+            
+            Πες στο παιδί με πολύ φιλικό τρόπο τι συμβαίνει στο κύκλωμά του αυτή τη στιγμή. Αν η λάμπα ανάβει, πανηγύρισε! Αν δεν ανάβει, ενθάρρυνέ το να κάνει μια μικρή αλλαγή (π.χ. να βάλει το διακόπτη στο ΟΝ ή να αλλάξει το ξύλο/γόμα).`;
+
+            loader.classList.remove('hidden');
+            responseBox.innerHTML = "";
+            
+            try {
+                const answer = await callGemini(prompt, systemInstruction);
+                responseBox.innerHTML = answer;
+            } catch (error) {
+                responseBox.innerHTML = `<span class="text-red-500 font-bold">${error.message}</span>`;
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        async function aiTestCustomMaterial() {
+            playClickSound();
+            const inputEl = document.getElementById('customMaterialInput');
+            const materialVal = inputEl.value.trim();
+            if (!materialVal) return;
+
+            const responseBox = document.getElementById('aiResponseBox');
+            const loader = document.getElementById('aiLoading');
+
+            const prompt = `Το παιδί θέλει να μάθει αν το εξής υλικό αφήνει το ηλεκτρικό ρεύμα να περάσει: "${materialVal}".
+            Εξήγησε με πολύ απλά λόγια αν το υλικό αυτό είναι αγωγός (περνάει το ρεύμα) ή μονωτής (σταματάει το ρεύμα). Δώσε ένα διασκεδαστικό παράδειγμα ή μια μικρή συμβουλή.`;
+
+            loader.classList.remove('hidden');
+            responseBox.innerHTML = "";
+            inputEl.value = ""; 
+
+            try {
+                const answer = await callGemini(prompt, systemInstruction);
+                responseBox.innerHTML = answer;
+            } catch (error) {
+                responseBox.innerHTML = `<span class="text-red-500 font-bold">${error.message}</span>`;
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        async function aiAskQuestion(question) {
+            playClickSound();
+            const responseBox = document.getElementById('aiResponseBox');
+            const loader = document.getElementById('aiLoading');
+
+            loader.classList.remove('hidden');
+            responseBox.innerHTML = "";
+
+            try {
+                const answer = await callGemini(question, systemInstruction);
+                responseBox.innerHTML = answer;
+            } catch (error) {
+                responseBox.innerHTML = `<span class="text-red-500 font-bold">${error.message}</span>`;
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+    </script>
+
+    <!-- ΚΥΡΙΑ ΛΟΓΙΚΗ ΠΡΟΣΟΜΟΙΩΣΗΣ -->
+    <script>
+        // State
+        let circuitState = {
+            batteries: 1,       
+            bulbType: 'normal',  
+            isSwitchOn: false,   // false = OFF (σβηστό), true = ON (ανάβει)
+            material: 'wire'    
+        };
+
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            setTimeout(() => {
+                document.getElementById('helpModal').classList.remove('opacity-0');
+            }, 300);
+            updateCircuitVisualsOnly(); 
+        });
+
+        function closeHelpModal() {
+            playClickSound();
+            document.getElementById('helpModal').classList.add('hidden');
+        }
+
+        function showHelpModal() {
+            playClickSound();
+            document.getElementById('helpModal').classList.remove('hidden');
+        }
+
+        function setBatteries(count) {
+            playClickSound();
+            circuitState.batteries = count;
+            const btn1 = document.getElementById('btn-bat-1');
+            const btn2 = document.getElementById('btn-bat-2');
+            
+            if (count === 1) {
+                btn1.className = "py-3 px-2 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-800 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+                btn2.className = "py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+                document.getElementById('battery2').classList.add('hidden');
+            } else {
+                btn1.className = "py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+                btn2.className = "py-3 px-2 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-800 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+                document.getElementById('battery2').classList.remove('hidden');
+            }
+            updateCircuit();
+        }
+
+        function setBulb(type) {
+            playClickSound();
+            circuitState.bulbType = type;
+            const btnNormal = document.getElementById('btn-bulb-normal');
+            const btnWeak = document.getElementById('btn-bulb-weak');
+            
+            if (type === 'normal') {
+                btnNormal.className = "py-3 px-2 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-800 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+                btnWeak.className = "py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+            } else {
+                btnNormal.className = "py-3 px-2 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+                btnWeak.className = "py-3 px-2 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-800 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+            }
+            
+            updateCircuitVisualsOnly(); 
+            updateCircuit(); 
+        }
+
+        // Η ΛΟΓΙΚΗ ΤΟΥ ΔΙΑΚΟΠΤΗ ΔΙΟΡΘΩΘΗΚΕ: ΟΝ = περνάει ρεύμα, OFF = κόβεται
+        function toggleSwitch() {
+            playClickSound();
+            circuitState.isSwitchOn = !circuitState.isSwitchOn;
+            
+            const btn = document.getElementById('switchBtn');
+            const text = document.getElementById('switchText');
+            const arm = document.getElementById('switchArm');
+            
+            if (circuitState.isSwitchOn) {
+                // Διακόπτης ON (Κλειστό κύκλωμα - Ρεύμα περνάει)
+                btn.className = "w-full py-3 px-4 rounded-xl border-2 border-green-500 bg-green-50 text-green-700 font-bold flex items-center justify-center gap-2 transition-all min-h-[48px] shadow-md";
+                text.innerText = "ON (Αναμμένο)";
+                btn.querySelector('i').setAttribute('data-lucide', 'toggle-right');
+                
+                // SVG Κίνηση: Περιστροφή ελάσματος για να ακουμπάει
+                arm.setAttribute('x1', '20');
+                arm.setAttribute('y1', '30');
+                arm.setAttribute('x2', '60');
+                arm.setAttribute('y2', '30');
+                arm.setAttribute('stroke', '#10b981');
+            } else {
+                // Διακόπτης OFF (Ανοιχτό κύκλωμα - Ρεύμα κόβεται)
+                btn.className = "w-full py-3 px-4 rounded-xl border-2 border-red-500 bg-red-50 text-red-700 font-bold flex items-center justify-center gap-2 transition-all min-h-[48px] shadow-sm hover:shadow-md";
+                text.innerText = "OFF (Σβηστό)";
+                btn.querySelector('i').setAttribute('data-lucide', 'toggle-left');
+                
+                // SVG Κίνηση: Άνοιγμα ελάσματος
+                arm.setAttribute('x1', '20');
+                arm.setAttribute('y1', '30');
+                arm.setAttribute('x2', '60');
+                arm.setAttribute('y2', '0');
+                arm.setAttribute('stroke', '#ef4444');
+            }
+            lucide.createIcons();
+            updateCircuit();
+        }
+
+        function setMaterial(material) {
+            playClickSound();
+            circuitState.material = material;
+            
+            const materialButtons = ['wire', 'clip', 'ring', 'pencil', 'eraser'];
+            materialButtons.forEach(mat => {
+                const btn = document.getElementById(`btn-mat-${mat}`);
+                if (mat === material) {
+                    btn.className = "py-2 px-1 rounded-xl border-2 border-blue-500 bg-blue-50 text-blue-800 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+                } else {
+                    btn.className = "py-2 px-1 rounded-xl border-2 border-gray-200 hover:border-blue-300 text-gray-700 font-bold flex flex-col items-center gap-1 transition-all min-h-[48px]";
+                }
+            });
+            
+            materialButtons.forEach(mat => {
+                document.getElementById(`mat-${mat}-svg`).classList.add('hidden');
+            });
+            document.getElementById(`mat-${material}-svg`).classList.remove('hidden');
+            
+            updateCircuit();
+        }
+
+        // ΕΛΕΓΧΟΣ ΡΕΥΜΑΤΟΣ
+        function isCircuitComplete() {
+            // Αν ο διακόπτης είναι OFF, ρεύμα γιοκ!
+            if (!circuitState.isSwitchOn) return false;
+            
+            // Το ξύλο και η γόμα είναι μονωτές
+            if (circuitState.material === 'pencil' || circuitState.material === 'eraser') return false;
+            
+            // Για καλώδιο, συνδετήρα, δαχτυλίδι (όταν ο διακόπτης είναι ON) -> περνάει ρεύμα
+            return true; 
+        }
+
+        function updateCircuitVisualsOnly() {
+            if (circuitState.bulbType === 'normal') {
+                document.getElementById('bulbGlassNormal').classList.remove('hidden');
+                document.getElementById('bulbGlassWeakGroup').classList.add('hidden');
+            } else {
+                document.getElementById('bulbGlassNormal').classList.add('hidden');
+                document.getElementById('bulbGlassWeakGroup').classList.remove('hidden');
+            }
+        }
+
+        function updateCircuit() {
+            const complete = isCircuitComplete();
+            
+            const statusIndicator = document.getElementById('statusIndicator');
+            const statusIcon = document.getElementById('statusIcon');
+            const statusLabel = document.getElementById('statusLabel');
+            const flowPaths = ['flow-bottom', 'flow-right-1', 'flow-right-2', 'flow-top', 'flow-left'];
+            
+            if (complete) {
+                // ΤΟ ΡΕΥΜΑ ΠΕΡΝΑΕΙ (ΛΑΜΠΑ ΑΝΑΒΕΙ)
+                statusIndicator.className = "flex items-center gap-2 bg-green-50 text-green-700 px-4 py-2 rounded-full border-2 border-green-200 font-bold text-sm transition-all duration-300 shadow-sm mx-auto";
+                statusLabel.innerText = "Το ρεύμα κυλάει ελεύθερα!";
+                statusIcon.innerText = "⚡";
+                flowPaths.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.classList.remove('hidden'); el.classList.add('wire-flow');
+                });
+                
+                let fillColour = "#fef08a"; 
+                let glowFilter = "url(#glow)";
+                let glowClass = "glow-active";
+
+                if (circuitState.bulbType === 'weak') {
+                    glowFilter = "url(#glowWeak)";
+                    glowClass = "glow-active-weak";
+                }
+
+                ['bulbGlassNormal', 'bulbGlassWeakGroup'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (id === 'bulbGlassWeakGroup') {
+                        el.querySelector('circle').setAttribute('fill', fillColour);
+                        el.setAttribute('filter', glowFilter);
+                        el.classList.add(glowClass);
+                    } else {
+                        el.setAttribute('fill', fillColour);
+                        el.setAttribute('filter', glowFilter);
+                        el.classList.add(glowClass);
+                    }
+                });
+
+                if (circuitState.bulbType === 'normal') {
+                    fillColour = (circuitState.batteries === 1) ? "#fef08a" : "#facc15";
+                } else { 
+                    fillColour = (circuitState.batteries === 1) ? "#fef9c3" : "#fef08a";
+                }
+                
+                if (circuitState.bulbType === 'weak') {
+                     document.getElementById('bulbGlassWeakGroup').querySelector('circle').setAttribute('fill', fillColour);
+                } else {
+                     document.getElementById('bulbGlassNormal').setAttribute('fill', fillColour);
+                }
+
+                document.getElementById('lightRays').classList.remove('hidden');
+                document.getElementById('lightRays').classList.remove('opacity-0');
+                document.getElementById('filament').setAttribute('stroke', '#d97706');
+                playSuccessSound();
+                generateFeedbackText(true);
+                
+            } else {
+                // ΤΟ ΡΕΥΜΑ ΚΟΒΕΤΑΙ (ΛΑΜΠΑ ΣΒΗΝΕΙ)
+                statusIndicator.className = "flex items-center gap-2 bg-red-50 text-red-700 px-4 py-2 rounded-full border-2 border-red-200 font-bold text-sm transition-all duration-300 shadow-sm mx-auto";
+                statusLabel.innerText = "Το ρεύμα σταμάτησε";
+                statusIcon.innerText = "❌";
+                flowPaths.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.classList.add('hidden'); el.classList.remove('wire-flow');
+                });
+                
+                const normalBulb = document.getElementById('bulbGlassNormal');
+                normalBulb.setAttribute('fill', '#e5e7eb');
+                normalBulb.removeAttribute('filter');
+                normalBulb.classList.remove('glow-active', 'glow-active-weak');
+
+                const weakBulbGroup = document.getElementById('bulbGlassWeakGroup');
+                weakBulbGroup.querySelector('circle').setAttribute('fill', '#d1d5db');
+                weakBulbGroup.removeAttribute('filter');
+                weakBulbGroup.classList.remove('glow-active', 'glow-active-weak');
+                
+                document.getElementById('lightRays').classList.add('hidden');
+                document.getElementById('lightRays').classList.add('opacity-0');
+                document.getElementById('filament').setAttribute('stroke', '#4b5563');
+                generateFeedbackText(false);
+            }
+        }
+
+        function generateFeedbackText(isWorking) {
+            const fb = document.getElementById('feedbackText');
+            if (isWorking) {
+                if (circuitState.bulbType === 'normal' && circuitState.batteries === 2) {
+                    fb.innerHTML = "🌟 <b>Φανταστικά!</b> Η λάμπα σου φέγγει <b>πάρα πολύ δυνατά</b> γιατί έβαλες 2 μπαταρίες!";
+                } else if (circuitState.bulbType === 'weak' && circuitState.batteries === 1) {
+                    fb.innerHTML = "✨ <b>Μπράβο!</b> Η αχνή λάμπα ανάβει. Αν θες να φέγγει πιο δυνατά, βάλε 2 μπαταρίες!";
+                } else if (circuitState.material === 'clip') {
+                    fb.innerHTML = "📎 <b>Τέλεια!</b> Ο μεταλλικός συνδετήρας αφήνει το ρεύμα να περάσει και η λάμπα άναψε!";
+                } else if (circuitState.material === 'ring') {
+                    fb.innerHTML = "💍 <b>Ουάου!</b> Το χρυσό δαχτυλίδι είναι πολύ καλό για το ρεύμα! Η λάμπα άναψε!";
+                } else {
+                    fb.innerHTML = "💡 <b>Τα κατάφερες!</b> Το κύκλωμα έκλεισε και το ρεύμα κάνει τη λάμπα να ανάβει!";
+                }
+            } else {
+                if (!circuitState.isSwitchOn) {
+                    fb.innerHTML = "🔌 <b>Πάτα το διακόπτη στο ON</b> για να δώσεις ρεύμα!";
+                } else if (circuitState.material === 'pencil') {
+                    fb.innerHTML = "✏️ <b>Δοκίμασες το μολύβι!</b> Το ξύλο κρατάει το ρεύμα. Δοκίμασε το καλώδιο, το δαχτυλίδι ή τον συνδετήρα!";
+                } else if (circuitState.material === 'eraser') {
+                    fb.innerHTML = "🧼 <b>Δοκίμασες τη γόμα!</b> Η γόμα σταματάει το ρεύμα. Ψάξε για μεταλλικά υλικά!";
+                } else {
+                    fb.innerHTML = "🤔 Κάτι εμποδίζει το ρεύμα. Βεβαιώσου ότι ο διακόπτης είναι στο ON!";
+                }
+            }
+        }
+
+        function resetCircuit() {
+            playClickSound();
+            circuitState = { batteries: 1, bulbType: 'normal', isSwitchOn: false, material: 'wire' };
+            setBatteries(1); setBulb('normal'); setMaterial('wire');
+            
+            const btn = document.getElementById('switchBtn');
+            const text = document.getElementById('switchText');
+            const arm = document.getElementById('switchArm');
+            btn.className = "w-full py-3 px-4 rounded-xl border-2 border-red-500 bg-red-50 text-red-700 font-bold flex items-center justify-center gap-2 transition-all min-h-[48px] shadow-sm hover:shadow-md";
+            text.innerText = "OFF (Σβηστό)";
+            btn.querySelector('i').setAttribute('data-lucide', 'toggle-left');
+            arm.setAttribute('x1', '20'); arm.setAttribute('y1', '30'); arm.setAttribute('x2', '60'); arm.setAttribute('y2', '0'); arm.setAttribute('stroke', '#ef4444');
+            
+            lucide.createIcons();
+            updateCircuitVisualsOnly();
+            updateCircuit();
+        }
+    </script>
+</body>
+</html>
